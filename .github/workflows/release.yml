@@ -1,0 +1,90 @@
+name: Build and release APK
+
+on:
+  push:
+    branches: ['**']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - uses: android-actions/setup-android@v3
+
+      - uses: gradle/actions/setup-gradle@v4
+
+      # Sign with the keystore from repository secrets if configured
+      # (KEYSTORE_BASE64, KEYSTORE_PASSWORD, KEY_ALIAS, KEY_PASSWORD).
+      # Otherwise sign with a throwaway key so the APK is still installable.
+      - name: Set up signing
+        id: signing
+        env:
+          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+        run: |
+          if [ -n "$KEYSTORE_BASE64" ]; then
+            echo "$KEYSTORE_BASE64" | base64 -d > keystore.jks
+            echo "persistent=true" >> "$GITHUB_OUTPUT"
+          else
+            KEYSTORE_PASSWORD=throwaway
+            KEY_PASSWORD=throwaway
+            KEY_ALIAS=throwaway
+            keytool -genkeypair -noprompt -keystore keystore.jks \
+              -storepass "$KEYSTORE_PASSWORD" -keypass "$KEY_PASSWORD" \
+              -alias "$KEY_ALIAS" -keyalg RSA -keysize 4096 -validity 10000 \
+              -dname "CN=LibreTorrent CI"
+            echo "persistent=false" >> "$GITHUB_OUTPUT"
+          fi
+          cat > key.properties <<EOF
+          storeFile=keystore.jks
+          storePassword=$KEYSTORE_PASSWORD
+          keyAlias=$KEY_ALIAS
+          keyPassword=$KEY_PASSWORD
+          EOF
+
+      - name: Build release APKs
+        run: ./gradlew --console=plain assembleBaseRelease
+
+      - name: Collect APKs
+        id: meta
+        run: |
+          version=$(grep -oP "versionName '\K[^']+" app/build.gradle)
+          branch="${GITHUB_REF_NAME//\//-}"
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "tag=v$version-$branch-build.$GITHUB_RUN_NUMBER" >> "$GITHUB_OUTPUT"
+          mkdir dist
+          for f in app/build/outputs/apk/base/release/*.apk; do
+            name=$(basename "$f" | sed "s/^app-base-/LibreTorrent-$version-/")
+            cp "$f" "dist/$name"
+          done
+          ls -l dist
+
+      - name: Publish release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.meta.outputs.tag }}
+          target_commitish: ${{ github.sha }}
+          name: LibreTorrent ${{ steps.meta.outputs.version }} (${{ github.ref_name }} build ${{ github.run_number }})
+          prerelease: ${{ github.ref_name != github.event.repository.default_branch }}
+          body: |
+            Built from ${{ github.ref_name }} at ${{ github.sha }}.
+
+            Install `*-universal-release.apk` if unsure which ABI your device uses.
+            ${{ steps.signing.outputs.persistent == 'false' && '**Note:** signed with a throwaway key (no signing secrets configured). Uninstall any previous build before installing this one.' || '' }}
+          files: dist/*.apk
