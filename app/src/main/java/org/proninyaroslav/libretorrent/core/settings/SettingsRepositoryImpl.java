@@ -139,6 +139,7 @@ public class SettingsRepositoryImpl implements SettingsRepository {
         static final int maxConnections = SessionSettings.DEFAULT_CONNECTIONS_LIMIT;
         static final int maxConnectionsPerTorrent = SessionSettings.DEFAULT_CONNECTIONS_LIMIT_PER_TORRENT;
         static final int maxUploadsPerTorrent = SessionSettings.DEFAULT_UPLOADS_LIMIT_PER_TORRENT;
+        static final long maxUploadedBytes = SessionSettings.DEFAULT_MAX_UPLOADED_BYTES;
         static final int maxActiveUploads = SessionSettings.DEFAULT_ACTIVE_SEEDS;
         static final int maxActiveDownloads = SessionSettings.DEFAULT_ACTIVE_DOWNLOADS;
         static final int maxActiveTorrents = SessionSettings.DEFAULT_ACTIVE_LIMIT;
@@ -231,6 +232,7 @@ public class SettingsRepositoryImpl implements SettingsRepository {
         settings.connectionsLimit = maxConnections();
         settings.connectionsLimitPerTorrent = maxConnectionsPerTorrent();
         settings.uploadsLimitPerTorrent = maxUploadsPerTorrent();
+        settings.maxUploadedBytes = maxUploadedBytes();
         settings.activeDownloads = maxActiveDownloads();
         settings.activeSeeds = maxActiveUploads();
         settings.activeLimit = maxActiveTorrents();
@@ -949,6 +951,19 @@ public class SettingsRepositoryImpl implements SettingsRepository {
     public void maxUploadsPerTorrent(int val) {
         pref.edit()
                 .putInt(appContext.getString(R.string.pref_key_max_uploads_per_torrent), val)
+                .apply();
+    }
+
+    @Override
+    public long maxUploadedBytes() {
+        return pref.getLong(appContext.getString(R.string.pref_key_max_uploaded_bytes),
+                Default.maxUploadedBytes);
+    }
+
+    @Override
+    public void maxUploadedBytes(long val) {
+        pref.edit()
+                .putLong(appContext.getString(R.string.pref_key_max_uploaded_bytes), val)
                 .apply();
     }
 

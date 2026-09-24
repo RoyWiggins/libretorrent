@@ -70,6 +70,8 @@ public class SessionSettings
     public static final boolean DEFAULT_USE_RANDOM_PORT = true;
     public static final boolean DEFAULT_VALIDATE_HTTPS_TRACKERS = true;
     public static final boolean DEFAULT_POSIX_DISK_IO = false;
+    /* -1 means without limit */
+    public static final long DEFAULT_MAX_UPLOADED_BYTES = -1;
 
     public int activeDownloads = DEFAULT_ACTIVE_DOWNLOADS;
     public int activeSeeds = DEFAULT_ACTIVE_SEEDS;
@@ -114,6 +116,7 @@ public class SessionSettings
     public String[] defaultTrackersList = new String[]{};
     public boolean validateHttpsTrackers = DEFAULT_VALIDATE_HTTPS_TRACKERS;
     public boolean posixDiskIo = DEFAULT_POSIX_DISK_IO;
+    public long maxUploadedBytes = DEFAULT_MAX_UPLOADED_BYTES;
 
     public SessionSettings() {}
 
@@ -162,6 +165,7 @@ public class SessionSettings
         this.defaultTrackersList = other.defaultTrackersList;
         this.validateHttpsTrackers = other.validateHttpsTrackers;
         this.posixDiskIo = other.posixDiskIo;
+        this.maxUploadedBytes = other.maxUploadedBytes;
     }
 
     public enum EncryptMode

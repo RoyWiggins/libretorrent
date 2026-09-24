@@ -1102,6 +1102,8 @@ public class TorrentSessionImpl extends SessionManager
         if (operationNotAllowed())
             return;
 
+        checkMaxUploadedBytes();
+
         notifyListeners((listener) -> listener.onSessionStats(
                 new SessionStats(dhtNodes(),
                         getTotalDownload(),
@@ -1110,6 +1112,25 @@ public class TorrentSessionImpl extends SessionManager
                         getUploadSpeed(),
                         getListenPort()))
         );
+    }
+
+    /*
+     * Stop finished torrents that have uploaded at least `maxUploadedBytes`.
+     * Unfinished torrents download and upload as usual.
+     */
+
+    private void checkMaxUploadedBytes() {
+        long limit = settings.maxUploadedBytes;
+        if (limit < 0)
+            return;
+
+        for (TorrentDownload task : torrentTasks.values()) {
+            if (task == null || !task.isFinished() || task.isPaused())
+                continue;
+
+            if (task.getTotalSentBytes() >= limit)
+                task.pauseManually();
+        }
     }
 
     private static String dhtBootstrapNodes() {

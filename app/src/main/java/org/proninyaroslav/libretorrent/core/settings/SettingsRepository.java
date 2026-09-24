@@ -271,6 +271,10 @@ public interface SettingsRepository
 
     void maxUploadsPerTorrent(int val);
 
+    long maxUploadedBytes();
+
+    void maxUploadedBytes(long val);
+
     int maxActiveUploads();
 
     void maxActiveUploads(int val);

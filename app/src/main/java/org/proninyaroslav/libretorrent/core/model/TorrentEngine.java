@@ -1481,6 +1481,11 @@ public class TorrentEngine {
         } else if (key.equals(appContext.getString(R.string.pref_key_max_uploads_per_torrent))) {
             session.setMaxUploadsPerTorrent(pref.maxUploadsPerTorrent());
 
+        } else if (key.equals(appContext.getString(R.string.pref_key_max_uploaded_bytes))) {
+            SessionSettings s = session.getSettings();
+            s.maxUploadedBytes = pref.maxUploadedBytes();
+            session.setSettings(s);
+
         } else if (key.equals(appContext.getString(R.string.pref_key_max_active_downloads))) {
             SessionSettings s = session.getSettings();
             s.activeDownloads = pref.maxActiveDownloads();

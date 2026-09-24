@@ -42,6 +42,7 @@ public class LimitationsSettingsFragment extends CustomPreferenceFragment
     private static final String TAG = LimitationsSettingsFragment.class.getSimpleName();
 
     private static final String KEY_AUTO_MANAGE_SETTINGS_REQUEST = TAG + "_auto_manage_settings";
+    private static final long MIB = 1024L * 1024L;
 
     private SettingsRepository pref;
 
@@ -132,6 +133,18 @@ public class LimitationsSettingsFragment extends CustomPreferenceFragment
             bindOnPreferenceChangeListener(maxUploadsPerTorrent);
         }
 
+        String keyMaxUploaded = getString(R.string.pref_key_max_uploaded_bytes);
+        EditTextPreference maxUploaded = findPreference(keyMaxUploaded);
+        if (maxUploaded != null) {
+            maxUploaded.setDialogMessage(R.string.pref_max_uploaded_dialog_msg);
+            long bytes = pref.maxUploadedBytes();
+            String value = Long.toString(bytes < 0 ? -1 : bytes / MIB);
+            maxUploaded.setOnBindEditTextListener((editText) -> editText.setFilters(queueingFilter));
+            maxUploaded.setSummary(value);
+            maxUploaded.setText(value);
+            bindOnPreferenceChangeListener(maxUploaded);
+        }
+
         setAutoManageSettingsListener();
     }
 
@@ -203,6 +216,15 @@ public class LimitationsSettingsFragment extends CustomPreferenceFragment
                 value = Integer.parseInt((String) newValue);
             pref.maxUploadsPerTorrent(value);
             preference.setSummary(Integer.toString(value));
+
+        } else if (preference.getKey().equals(getString(R.string.pref_key_max_uploaded_bytes))) {
+            long value = -1;
+            if (!TextUtils.isEmpty((String) newValue))
+                value = Long.parseLong((String) newValue);
+            if (value < 0)
+                value = -1;
+            pref.maxUploadedBytes(value < 0 ? value : value * MIB);
+            preference.setSummary(Long.toString(value));
         }
 
         return true;

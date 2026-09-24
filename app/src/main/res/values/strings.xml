@@ -434,6 +434,8 @@
     <string name="pref_enable_auto_manage_title">Enable auto-manage</string>
     <string name="pref_auto_manage_summary">The torrent may be auto-resumed or paused at any point. (May slow down the pausing/resuming.)</string>
     <string name="pref_max_active_uploads_downloads_dialog_msg">-1 without limit</string>
+    <string name="pref_max_uploaded_title">Max. uploaded per torrent (MiB)</string>
+    <string name="pref_max_uploaded_dialog_msg">Once a torrent is fully downloaded, keep seeding only until it has uploaded this many MiB, then stop it. 0 stops seeding as soon as the download is complete, -1 without limit</string>
     <!-- Appearance settings -->
     <string name="pref_theme_category">Theme settings</string>
     <string name="pref_theme_title">Theme</string>

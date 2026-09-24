@@ -29,6 +29,13 @@
         android:title="@string/pref_max_uploads_per_torrent_title"
         app:singleLineTitle="false" />
 
+    <EditTextPreference
+        android:inputType="numberDecimal|numberSigned"
+        android:key="@string/pref_key_max_uploaded_bytes"
+        android:persistent="false"
+        android:title="@string/pref_max_uploaded_title"
+        app:singleLineTitle="false" />
+
     <PreferenceCategory android:title="@string/pref_speed_category">
 
         <EditTextPreference
